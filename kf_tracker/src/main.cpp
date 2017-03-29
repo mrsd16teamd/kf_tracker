@@ -3,8 +3,8 @@
 #include <fstream>
 #include <algorithm>
 #include <iterator>
-#include "kf_tracker/featureDetection.h"
-#include "kf_tracker/CKalmanFilter.h"
+#include "featureDetection.h"
+#include "CKalmanFilter.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
