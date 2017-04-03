@@ -90,11 +90,7 @@ find_package( OpenCV REQUIRED )
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES kf_tracker
-<<<<<<< HEAD
 #  CATKIN_DEPENDS pcl_ros roscpp sensor_msgs
-=======
-#  CATKIN_DEPENDS pck_ros roscpp sensor_msgs
->>>>>>> 6967be0d570af712cfda3dbf7547be75335dd51a
 #  DEPENDS system_lib
 )
 
