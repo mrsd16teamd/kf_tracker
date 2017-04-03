@@ -403,7 +403,7 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
       centroid.y=y/numPts;
       centroid.z=0.0;
 
-      if (centroid.x < 0.75  && centroid.x > -0.75 && centroid.y > -0.75 && centroid.y <0.75 && centroid.x != 0 && centroid.y != 0 )
+      if (centroid.x < 1.5  && centroid.x > -1.5 && centroid.y > -0.75 && centroid.y <0.75 && centroid.x != 0 && centroid.y != 0 )
       {
         cluster_vec.push_back(cloud_cluster);
 
@@ -444,7 +444,7 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
         cc.data.push_back(clusterCentroids.at(i).y);
         cc.data.push_back(clusterCentroids.at(i).z);
 
-        if ( clusterCentroids.at(i).x < 0.7 && clusterCentroids.at(i).y < 0.7 && clusterCentroids.at(i).y > -0.7 && clusterCentroids.at(i).x > -0.7 && clusterCentroids.at(i).x != 0 && clusterCentroids.at(i).y != 0 )
+        if ( clusterCentroids.at(i).x < 1.5 && clusterCentroids.at(i).y < 0.7 && clusterCentroids.at(i).y > -0.7 && clusterCentroids.at(i).x > -1.5 && clusterCentroids.at(i).x != 0 && clusterCentroids.at(i).y != 0 )
         {
           obstaclepoint[0] = clusterCentroids.at(i).x;
           obstaclepoint[1] = clusterCentroids.at(i).y;
