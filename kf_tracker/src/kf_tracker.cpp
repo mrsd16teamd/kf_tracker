@@ -42,9 +42,6 @@ void KFT(const std_msgs::Float32MultiArray ccs)
 {
   // First predict, to update the internal statePre variable
 
-
-
-
   std::vector<cv::Mat> pred;
   pred.push_back(KF0.predict());
   pred.push_back(KF1.predict());
@@ -88,9 +85,6 @@ void KFT(const std_msgs::Float32MultiArray ccs)
     KFpredictions.push_back(pt);
 
   }
-  // cout<<"Got predictions"<<"\n";
-
-
 
   // Find the cluster that is more probable to be belonging to a given KF.
   objID.clear();//Clear the objID vector
@@ -123,17 +117,6 @@ void KFT(const std_msgs::Float32MultiArray ccs)
 
 
   }
-
-  //  cout<<"distMat.size()"<<distMat.size()<<"\n";
-  //  cout<<"distMat[0].size()"<<distMat.at(0).size()<<"\n";
-  // DEBUG: print the distMat
-  /* for ( const auto &row : distMat )
-  {
-  for ( const auto &s : row ) std::cout << s << ' ';
-  std::cout << std::endl;
-}
-
-*/
 
 for(int clusterCount=0;clusterCount<6;clusterCount++)
 {
@@ -256,7 +239,6 @@ void publish_cloud(ros::Publisher& pub, pcl::PointCloud<pcl::PointXYZ>::Ptr clus
 
 
 void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
-
 {
   // cout<<"IF firstFrame="<<firstFrame<<"\n";
   // If this is the first frame, initialize kalman filters for the clustered objects
@@ -359,58 +341,10 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
       centroid.y=y/numPts;
       centroid.z=0.0;
 
-
-
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-      /*
-
-      pcl::PointCloud<pcl::PointXYZ>::Ptr source, target;
-
-      target = cloud_cluster;
-      source = input_cloud;
-      // ... read or fill in source and target
-      pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> est;
-      est.setInputSource (source);
-      est.setInputTarget (target);
-      //est.setMaxCorrespondenceDistance(4);
-      pcl::Correspondences all_correspondences;
-      // Determine all reciprocal correspondences
-      est.determineReciprocalCorrespondences (all_correspondences);
-
-
-      //std::cout<<"# Correspondences = " << all_correspondences.size() << std::endl;
-
-      //std::cout<<all_correspondences<<endl
-
-
-
-      */
-
-
-
-
-
-
-
-
-
-
-
-      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
       cluster_vec.push_back(cloud_cluster);
 
       //Get the centroid of the cluster
       clusterCentroids.push_back(centroid);
-
-
     }
 
     //Ensure at least 6 clusters exist to publish (later clusters may be empty)
@@ -430,7 +364,6 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
       clusterCentroids.push_back(centroid);
     }
 
-
     // Set initial state
     KF0.statePre.at<float>(0)=clusterCentroids.at(0).x;
     KF0.statePre.at<float>(1)=clusterCentroids.at(0).y;
@@ -448,7 +381,6 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
     KF2.statePre.at<float>(1)=clusterCentroids.at(2).y;
     KF2.statePre.at<float>(2)=0;// initial v_x
     KF2.statePre.at<float>(3)=0;//initial v_y
-
 
     // Set initial state
     KF3.statePre.at<float>(0)=clusterCentroids.at(3).x;
@@ -477,24 +409,13 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
       pt.y=clusterCentroids.at(i).y;
       prevClusterCenters.push_back(pt);
     }
-    /*  // Print the initial state of the kalman filter for debugging
-    cout<<"KF0.satePre="<<KF0.statePre.at<float>(0)<<","<<KF0.statePre.at<float>(1)<<"\n";
-    cout<<"KF1.satePre="<<KF1.statePre.at<float>(0)<<","<<KF1.statePre.at<float>(1)<<"\n";
-    cout<<"KF2.satePre="<<KF2.statePre.at<float>(0)<<","<<KF2.statePre.at<float>(1)<<"\n";
-    cout<<"KF3.satePre="<<KF3.statePre.at<float>(0)<<","<<KF3.statePre.at<float>(1)<<"\n";
-    cout<<"KF4.satePre="<<KF4.statePre.at<float>(0)<<","<<KF4.statePre.at<float>(1)<<"\n";
-    cout<<"KF5.satePre="<<KF5.statePre.at<float>(0)<<","<<KF5.statePre.at<float>(1)<<"\n";
-
-    //cin.ignore();// To be able to see the printed initial state of the KalmanFilter
-    */
   }
-
 
   else
   {
-    //cout<<"ELSE firstFrame="<<firstFrame<<"\n";
     pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr clustered_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+
     /* Creating the KdTree from input point cloud*/
     pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
 
@@ -514,17 +435,14 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
     ec.setMaxClusterSize (200);
     ec.setSearchMethod (tree);
     ec.setInputCloud (input_cloud);
-    //cout<<"PCL init successfull\n";
+
     /* Extract the clusters out of pc and save indices in cluster_indices.*/
     ec.extract (cluster_indices);
-    //cout<<"PCL extract successfull\n";
+
     /* To separate each cluster out of the vector<PointIndices> we have to
     * iterate through cluster_indices, create a new PointCloud for each
     * entry and write all points of the current cluster in the PointCloud.
     */
-    //pcl::PointXYZ origin (0,0,0);
-    //float mindist_this_cluster = 1000;
-    //float dist_this_point = 1000;
 
     std::vector<pcl::PointIndices>::const_iterator it;
     std::vector<int>::const_iterator pit;
@@ -534,8 +452,6 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
     // Cluster centroids
     std::vector<pcl::PointXYZ> clusterCentroids;
 
-
-
     for(it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
     {
       float x=0.0; float y=0.0;
@@ -543,75 +459,26 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
       pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
       for(pit = it->indices.begin(); pit != it->indices.end(); pit++)
       {
-
         cloud_cluster->points.push_back(input_cloud->points[*pit]);
-
 
         x+=input_cloud->points[*pit].x;
         y+=input_cloud->points[*pit].y;
         numPts++;
-
-        //dist_this_point = pcl::geometry::distance(input_cloud->points[*pit],
-        //                                          origin);
-        //mindist_this_cluster = std::min(dist_this_point, mindist_this_cluster);
       }
-
-
-
 
       pcl::PointXYZ centroid;
       centroid.x=x/numPts;
       centroid.y=y/numPts;
       centroid.z=0.0;
 
-
-      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-      /*
-
-      pcl::PointCloud<pcl::PointXYZ>::Ptr source, target;
-
-      target = cloud_cluster;
-      source = input_cloud;
-      // ... read or fill in source and target
-      pcl::registration::CorrespondenceEstimation<pcl::PointXYZ, pcl::PointXYZ> est;
-      est.setInputSource (source);
-      est.setInputTarget (target);
-      //est.setMaxCorrespondenceDistance(4);
-      pcl::Correspondences all_correspondences;
-      // Determine all reciprocal correspondences
-      est.determineReciprocalCorrespondences (all_correspondences);
-
-      //std::cout<<"# Correspondences = " << all_correspondences.size() << std::endl;
-
-      //std::cout<<all_correspondences<<endl
-
-
-
-
-
-
-
-      */
-
-
-
-
       if (centroid.x < 0.75  && centroid.x > -0.75 && centroid.y > -0.75 && centroid.y <0.75 && centroid.x != 0 && centroid.y != 0 )
       {
-
-        //////////////////////////////////////////////////////////////
-
         cluster_vec.push_back(cloud_cluster);
 
         //Get the centroid of the cluster
         clusterCentroids.push_back(centroid);
       }
     }
-    // cout<<"cluster_vec got some clusters\n";
 
     //Ensure at least 6 clusters exist to publish (later clusters may be empty)
     while (cluster_vec.size() < 6){
@@ -640,85 +507,37 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
     bill.header.frame_id = "laser";
     for(int i=0;i<6;i++)
     {
-
-      //	if ( clusterCentroids.at(i).x < 0.7 && clusterCentroids.at(i).y < 0.7 && clusterCentroids.at(i).y > -0.7 && clusterCentroids.at(i).x > -0.7 && clusterCentroids.at(i).x != 0 && clusterCentroids.at(i).y != 0 )
       {
         cc.data.push_back(clusterCentroids.at(i).x);
         cc.data.push_back(clusterCentroids.at(i).y);
         cc.data.push_back(clusterCentroids.at(i).z);
 
-
-
-
-
-
         if ( clusterCentroids.at(i).x < 0.7 && clusterCentroids.at(i).y < 0.7 && clusterCentroids.at(i).y > -0.7 && clusterCentroids.at(i).x > -0.7 && clusterCentroids.at(i).x != 0 && clusterCentroids.at(i).y != 0 )
-
         {
-
-          //cctemp.data.push_back(clusterCentroids.at(i).x);
-          //cctemp.data.push_back(clusterCentroids.at(i).y);
-          //cctemp.data.push_back(clusterCentroids.at(i).z);
           obstaclepoint[0] = clusterCentroids.at(i).x;
           obstaclepoint[1] = clusterCentroids.at(i).y;
           obstaclepoint[2] = clusterCentroids.at(i).z;
-
         }
-
-
-
-
-
-
-
-
       }
     }
-
-
-
-
-
-    // cout<<"6 clusters initialized\n";
-
-    //tf::StampedTransform transform;
-    //obstaclepoint[0] = cctemp[0];
-    //obstaclepoint[1] = cctemp[1];
-    //obstaclepoint[2] = cctemp[2];
-
-
-    //tf::Vector3 point( obstaclepoint[0],obstaclepoint[1],obstaclepoint[2]);
-    /*
-
-
-    tf::StampedTransform transform;
-
-    tf::Vector3 point_bl = transform * point;
-
-    std::cout<<"printingtransformedpoint"<<std::endl;
-    std::cout<<point_bl<<std::endl;
-    */
-
 
     std::cout<<"local coordinate"<<std::endl;
     std::cout<<obstaclepoint<<std::endl;
 
     tf::StampedTransform transform;
 
-
-
     bill.point.x = obstaclepoint[0];
     bill.point.y = obstaclepoint[1];
     bill.point.z = obstaclepoint[2];
 
-
-    try{
-
+    try
+    {
       tran->waitForTransform("/map","/laser",ros::Time::now(), ros::Duration(0.01));
       tran->lookupTransform("/map","/laser", ros::Time(0), transform);
       tran->transformPoint("map",bill, m);
     }
-    catch (tf::TransformException& ex) {
+    catch (tf::TransformException& ex)
+    {
 
     }
 
@@ -727,39 +546,7 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
     std::cout<<m.point.y<<std::endl;
     std::cout<<m.point.z<<std::endl;
 
-
-    /*
-
-    cctemp.data.push_back(transform.getOrigin().x() - obstaclepoint[0]);
-    cctemp.data.push_back(transform.getOrigin().y() - obstaclepoint[1]);
-    cctemp.data.push_back(transform.getOrigin().z() - obstaclepoint[2]);
-
-
-
-
-    if (  obstaclepoint[0] == 0 &&  obstaclepoint[1] == 0 )
-    {
-
-    cctemp.data.push_back(obstaclepoint[0]);
-    cctemp.data.push_back(obstaclepoint[0]);
-    cctemp.data.push_back(obstaclepoint[0]);
-
-
-  }
-
-
-  std::cout<<transform.getOrigin().x() - obstaclepoint[0] <<std::endl;
-  std::cout<<transform.getOrigin().y() - obstaclepoint[1]<<std::endl;
-  std::cout<<transform.getOrigin().z() - obstaclepoint[2]<<std::endl;
-  cc_pos.publish(cctemp);
-  */
-
-  //if (  abs(obstaclepoint[0])  > 0.00001 &&  abs(obstaclepoint[1]) > 0.000001 )
-  //{
-
   visualization_msgs::MarkerArray clusterMarkers1;
-
-
   visualization_msgs::Marker m1;
 
   m1.id=0;
@@ -772,12 +559,6 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
   m1.color.g=0;
   m1.color.b=0;
 
-  /*
-
-  m1.pose.position.x=transform.getOrigin().x() - obstaclepoint[0];
-  m1.pose.position.y=transform.getOrigin().y() - obstaclepoint[1];
-  m1.pose.position.z=transform.getOrigin().z() + obstaclepoint[2];
-  */
   if (  abs(obstaclepoint[0])  > 0.00001 &&  abs(obstaclepoint[1]) > 0.000001 )
   {
     m1.pose.position.x=m.point.x;
@@ -785,7 +566,6 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
     m1.pose.position.z=m.point.z;
 
     clusterMarkers1.markers.push_back(m1);
-
 
     cctemp.data.push_back(m.point.x);
     cctemp.data.push_back(m.point.y);
@@ -803,15 +583,10 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
     cctemp.data.push_back(0);
     cctemp.data.push_back(0);
     cctemp.data.push_back(0);
-
   }
+
   // Publish cluster mid-points.
-
-
-
-
   cc_pos.publish(cctemp);
-
   markerPub1.publish(clusterMarkers1);
 
 
@@ -819,89 +594,60 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
   int i=0;
   bool publishedCluster[6];
   for(std::vector<int>::iterator it=objID.begin();it!=objID.end();it++)
-  { //cout<<"Inside the for loop\n";
-
-
-  switch(i)
   {
-    // cout<<"Inside the switch case\n";
-    case 0: {
-      publish_cloud(pub_cluster0,cluster_vec[*it],input);
-      publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-      i++;
-      break;
-
+    switch(i)
+    {
+      case 0: {
+        publish_cloud(pub_cluster0,cluster_vec[*it],input);
+        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
+        i++;
+        break;
+      }
+      case 1: {
+        publish_cloud(pub_cluster1,cluster_vec[*it],input);
+        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
+        i++;
+        break;
+      }
+      case 2: {
+        publish_cloud(pub_cluster2,cluster_vec[*it],input);
+        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
+        i++;
+        break;
+      }
+      case 3: {
+        publish_cloud(pub_cluster3,cluster_vec[*it],input);
+        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
+        i++;
+        break;
+      }
+      case 4: {
+        publish_cloud(pub_cluster4,cluster_vec[*it],input);
+        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
+        i++;
+        break;
+      }
+      case 5: {
+        publish_cloud(pub_cluster5,cluster_vec[*it],input);
+        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
+        i++;
+        break;
+      }
+      default: break;
     }
-    case 1: {
-      publish_cloud(pub_cluster1,cluster_vec[*it],input);
-      publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-      i++;
-      break;
-
-    }
-    case 2: {
-      publish_cloud(pub_cluster2,cluster_vec[*it],input);
-      publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-      i++;
-      break;
-
-    }
-    case 3: {
-      publish_cloud(pub_cluster3,cluster_vec[*it],input);
-      publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-      i++;
-      break;
-
-    }
-    case 4: {
-      publish_cloud(pub_cluster4,cluster_vec[*it],input);
-      publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-      i++;
-      break;
-
-    }
-
-    case 5: {
-      publish_cloud(pub_cluster5,cluster_vec[*it],input);
-      publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-      i++;
-      break;
-
-    }
-    default: break;
   }
-
-}
-
-}
-
-}
-
-
+} //else
+} //cloud_cb
 
 
 int main(int argc, char** argv)
 {
-  // ROS init
   ros::init (argc,argv,"KFTracker");
 
-
-
-  // Publishers to publish the state of the objects (pos and vel)
-  //objState1=nh.advertise<geometry_msgs::Twist> ("obj_1",1);
-
-
   ros::NodeHandle nh;
-  cout<<"About to setup callback\n";
-
-  // Create a ROS subscriber for the input point cloud
-
 
   tf::TransformListener lr(ros::Duration(10));
   tran=&lr;
-  //ros::Rate rate(10.0);
-  // while (nh.ok()){
-
 
   ros::Subscriber sub = nh.subscribe ("cloudnear", 1, cloud_cb);
 
@@ -912,23 +658,11 @@ int main(int argc, char** argv)
   pub_cluster3 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_3", 1);
   pub_cluster4 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_4", 1);
   pub_cluster5 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_5", 1);
-  // Subscribe to the clustered pointclouds
-  //ros::Subscriber c1=nh.subscribe("ccs",100,KFT);
+
   objID_pub = nh.advertise<std_msgs::Int32MultiArray>("obj_id", 1);
-  
   cc_pos=nh.advertise<std_msgs::Float32MultiArray>("ccs",100);//clusterCenter1
   markerPub= nh.advertise<visualization_msgs::MarkerArray> ("viz",1);
   markerPub1= nh.advertise<visualization_msgs::MarkerArray> ("viz1",1);
 
-  //}
-  /* Point cloud clustering
-  */
-
-
-  // Point cloud clustering
-
-
   ros::spin();
-
-
 }
