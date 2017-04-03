@@ -17,12 +17,7 @@ int n_clusters = 6;
 std::vector<cv::KalmanFilter> KF_vec;
 cv::KalmanFilter KF_start(stateDim,measDim,ctrlDim,CV_32F);
 
-ros::Publisher pub_cluster0;
-ros::Publisher pub_cluster1;
-ros::Publisher pub_cluster2;
-ros::Publisher pub_cluster3;
-ros::Publisher pub_cluster4;
-ros::Publisher pub_cluster5;
+std::vector<ros::Publisher> pub_cluster_vec;
 ros::Publisher cc_pos;
 ros::Publisher markerPub;
 ros::Publisher markerPub1;
@@ -154,8 +149,10 @@ markerPub.publish(clusterMarkers);
 std_msgs::Int32MultiArray obj_id;
 for(std::vector<int>::iterator it=objID.begin();it!=objID.end();it++)
 obj_id.data.push_back(*it);
+
 // Publish the object IDs
 objID_pub.publish(obj_id);
+
 // convert clusterCenters from geometry_msgs::Point to floats
 std::vector<std::vector<float> > cc;
 for (int i=0;i<6;i++)
@@ -167,15 +164,13 @@ for (int i=0;i<6;i++)
 
   cc.push_back(pt);
 }
-//cout<<"cc[5][0]="<<cc[5].at(0)<<"cc[5][1]="<<cc[5].at(1)<<"cc[5][2]="<<cc[5].at(2)<<"\n";
+
 float meas0[2]={cc[0].at(0),cc[0].at(1)};
 float meas1[2]={cc[1].at(0),cc[1].at(1)};
 float meas2[2]={cc[2].at(0),cc[2].at(1)};
 float meas3[2]={cc[3].at(0),cc[3].at(1)};
 float meas4[2]={cc[4].at(0),cc[4].at(1)};
 float meas5[2]={cc[5].at(0),cc[5].at(1)};
-
-
 
 // The update phase
 cv::Mat meas0Mat=cv::Mat(2,1,CV_32F,meas0);
@@ -184,7 +179,6 @@ cv::Mat meas2Mat=cv::Mat(2,1,CV_32F,meas2);
 cv::Mat meas3Mat=cv::Mat(2,1,CV_32F,meas3);
 cv::Mat meas4Mat=cv::Mat(2,1,CV_32F,meas4);
 cv::Mat meas5Mat=cv::Mat(2,1,CV_32F,meas5);
-
 
 if (!(meas0Mat.at<float>(0,0)==0.0f || meas0Mat.at<float>(1,0)==0.0f))
 Mat estimated0 = KF_vec[0].correct(meas0Mat);
@@ -208,7 +202,6 @@ void publish_cloud(ros::Publisher& pub, pcl::PointCloud<pcl::PointXYZ>::Ptr clus
   clustermsg->header.frame_id = input->header.frame_id;
   clustermsg->header.stamp = ros::Time::now();
   pub.publish (*clustermsg);
-
 }
 
 void init_kf(const sensor_msgs::PointCloud2ConstPtr& input)
@@ -251,7 +244,6 @@ void init_kf(const sensor_msgs::PointCloud2ConstPtr& input)
 
   tree->setInputCloud (input_cloud);
 
-
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
   ec.setClusterTolerance (0.04);
@@ -261,7 +253,6 @@ void init_kf(const sensor_msgs::PointCloud2ConstPtr& input)
   ec.setInputCloud (input_cloud);
   /* Extract the clusters out of pc and save indices in cluster_indices.*/
   ec.extract (cluster_indices);
-
 
   std::vector<pcl::PointIndices>::const_iterator it;
   std::vector<int>::const_iterator pit;
@@ -282,13 +273,7 @@ void init_kf(const sensor_msgs::PointCloud2ConstPtr& input)
       x+=input_cloud->points[*pit].x;
       y+=input_cloud->points[*pit].y;
       numPts++;
-
-
-      //dist_this_point = pcl::geometry::distance(input_cloud->points[*pit],
-      //                                          origin);
-      //mindist_this_cluster = std::min(dist_this_point, mindist_this_cluster);
     }
-
 
     pcl::PointXYZ centroid;
     centroid.x=x/numPts;
@@ -521,52 +506,14 @@ void cloud_cb (const sensor_msgs::PointCloud2ConstPtr& input)
   cc_pos.publish(cctemp);
   markerPub1.publish(clusterMarkers1);
 
-
   KFT(cc);
   int i=0;
   bool publishedCluster[6];
   for(std::vector<int>::iterator it=objID.begin();it!=objID.end();it++)
   {
-    switch(i)
-    {
-      case 0: {
-        publish_cloud(pub_cluster0,cluster_vec[*it],input);
-        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-        i++;
-        break;
-      }
-      case 1: {
-        publish_cloud(pub_cluster1,cluster_vec[*it],input);
-        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-        i++;
-        break;
-      }
-      case 2: {
-        publish_cloud(pub_cluster2,cluster_vec[*it],input);
-        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-        i++;
-        break;
-      }
-      case 3: {
-        publish_cloud(pub_cluster3,cluster_vec[*it],input);
-        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-        i++;
-        break;
-      }
-      case 4: {
-        publish_cloud(pub_cluster4,cluster_vec[*it],input);
-        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-        i++;
-        break;
-      }
-      case 5: {
-        publish_cloud(pub_cluster5,cluster_vec[*it],input);
-        publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
-        i++;
-        break;
-      }
-      default: break;
-    }
+    publish_cloud(pub_cluster_vec[i],cluster_vec[*it],input);
+    publishedCluster[i]=true;//Use this flag to publish only once for a given obj ID
+    i++;
   }
 } //else
 } //cloud_cb
@@ -591,12 +538,19 @@ int main(int argc, char** argv)
   ros::Subscriber sub = nh.subscribe ("cloudnear", 1, cloud_cb);
 
   // Create a ROS publisher for the output point cloud
+  ros::Publisher pub_cluster0, pub_cluster1, pub_cluster2, pub_cluster3, pub_cluster4, pub_cluster5;
   pub_cluster0 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_0", 1);
   pub_cluster1 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_1", 1);
   pub_cluster2 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_2", 1);
   pub_cluster3 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_3", 1);
   pub_cluster4 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_4", 1);
   pub_cluster5 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_5", 1);
+  pub_cluster_vec.push_back(pub_cluster0);
+  pub_cluster_vec.push_back(pub_cluster1);
+  pub_cluster_vec.push_back(pub_cluster2);
+  pub_cluster_vec.push_back(pub_cluster3);
+  pub_cluster_vec.push_back(pub_cluster4);
+  pub_cluster_vec.push_back(pub_cluster5);
 
   objID_pub = nh.advertise<std_msgs::Int32MultiArray>("obj_id", 1);
   cc_pos=nh.advertise<std_msgs::Float32MultiArray>("ccs",100);//clusterCenter1
