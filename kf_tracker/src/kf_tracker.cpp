@@ -1,43 +1,4 @@
-#include <iostream>
-#include <string.h>
-#include <fstream>
-#include <algorithm>
-#include <iterator>
-#include "kf_tracker/featureDetection.h"
-#include "kf_tracker/CKalmanFilter.h"
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/video/video.hpp>
-#include "opencv2/video/tracking.hpp"
-#include <ros/ros.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-#include "pcl_ros/point_cloud.h"
-#include <geometry_msgs/Point.h>
-#include <std_msgs/Float32MultiArray.h>
-#include <std_msgs/Int32MultiArray.h>
-
-#include <sensor_msgs/PointCloud2.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/common/geometry.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/kdtree/kdtree.h>
-#include <pcl/sample_consensus/method_types.h>
-#include <pcl/sample_consensus/model_types.h>
-#include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/segmentation/extract_clusters.h>
-#include <pcl/common/centroid.h>
- #include <tf/transform_listener.h>
-#include <visualization_msgs/MarkerArray.h>
-#include <visualization_msgs/Marker.h>
-#include <limits>
-#include <utility>
-#include <pcl/registration/correspondence_estimation.h>
+#include "kf_tracker.h"
 
 using namespace std;
 using namespace cv;
@@ -47,70 +8,38 @@ ros::Publisher objID_pub;
 
 tf::TransformListener* tran;
 
-    // KF init
-    int stateDim=4;// [x,y,v_x,v_y]//,w,h]
-    int measDim=2;// [z_x,z_y,z_w,z_h]
-    int ctrlDim=0;
-    cv::KalmanFilter KF0(stateDim,measDim,ctrlDim,CV_32F);
-    cv::KalmanFilter KF1(stateDim,measDim,ctrlDim,CV_32F);
-    cv::KalmanFilter KF2(stateDim,measDim,ctrlDim,CV_32F);
-    cv::KalmanFilter KF3(stateDim,measDim,ctrlDim,CV_32F);
-    cv::KalmanFilter KF4(stateDim,measDim,ctrlDim,CV_32F);
-    cv::KalmanFilter KF5(stateDim,measDim,ctrlDim,CV_32F);
+// KF init
+int stateDim=4;// [x,y,v_x,v_y]//,w,h]
+int measDim=2;// [z_x,z_y,z_w,z_h]
+int ctrlDim=0;
+cv::KalmanFilter KF0(stateDim,measDim,ctrlDim,CV_32F);
+cv::KalmanFilter KF1(stateDim,measDim,ctrlDim,CV_32F);
+cv::KalmanFilter KF2(stateDim,measDim,ctrlDim,CV_32F);
+cv::KalmanFilter KF3(stateDim,measDim,ctrlDim,CV_32F);
+cv::KalmanFilter KF4(stateDim,measDim,ctrlDim,CV_32F);
+cv::KalmanFilter KF5(stateDim,measDim,ctrlDim,CV_32F);
 
-    ros::Publisher pub_cluster0;
-    ros::Publisher pub_cluster1;
-    ros::Publisher pub_cluster2;
-    ros::Publisher pub_cluster3;
-    ros::Publisher pub_cluster4;
-    ros::Publisher pub_cluster5;
-	ros::Publisher cc_pos;
-    ros::Publisher markerPub;
-    ros::Publisher markerPub1;
+ros::Publisher pub_cluster0;
+ros::Publisher pub_cluster1;
+ros::Publisher pub_cluster2;
+ros::Publisher pub_cluster3;
+ros::Publisher pub_cluster4;
+ros::Publisher pub_cluster5;
+ros::Publisher cc_pos;
+ros::Publisher markerPub;
+ros::Publisher markerPub1;
 
-    std::vector<geometry_msgs::Point> prevClusterCenters;
+std::vector<geometry_msgs::Point> prevClusterCenters;
 
+cv::Mat state(stateDim,1,CV_32F);
+cv::Mat_<float> measurement(2,1);
 
-    cv::Mat state(stateDim,1,CV_32F);
-    cv::Mat_<float> measurement(2,1);
-
-    std::vector<int> objID;// Output of the data association using KF
-   // measurement.setTo(Scalar(0));
+std::vector<int> objID;// Output of the data association using KF
 
 bool firstFrame=true;
 
-// calculate euclidean distance of two points
-  double euclidean_distance(geometry_msgs::Point& p1, geometry_msgs::Point& p2)
-  {
-    return sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z));
-  }
-
-
-std::pair<int,int> findIndexOfMin(std::vector<std::vector<float> > distMat)
-{
-   // cout<<"findIndexOfMin cALLED\n";
-    std::pair<int,int>minIndex;
-    float minEl=std::numeric_limits<float>::max();
-  //  cout<<"minEl="<<minEl<<"\n";
-    for (int i=0; i<distMat.size();i++)
-        for(int j=0;j<distMat.at(0).size();j++)
-        {
-            if( distMat[i][j]<minEl)
-            {
-                minEl=distMat[i][j];
-                minIndex=std::make_pair(i,j);
-
-            }
-
-        }
-  //  cout<<"minIndex="<<minIndex.first<<","<<minIndex.second<<"\n";
-    return minIndex;
-}
 void KFT(const std_msgs::Float32MultiArray ccs)
 {
-
-
-
     // First predict, to update the internal statePre variable
 
 
@@ -974,9 +903,7 @@ tran=&lr;
  // while (nh.ok()){
 
 
-
   ros::Subscriber sub = nh.subscribe ("cloudnear", 1, cloud_cb);
-
 
   // Create a ROS publisher for the output point cloud
   pub_cluster0 = nh.advertise<sensor_msgs::PointCloud2> ("cluster_0", 1);
