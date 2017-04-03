@@ -12,7 +12,10 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   tf
   laser_geometry
+<<<<<<< HEAD
   laser_assembler
+=======
+>>>>>>> 6967be0d570af712cfda3dbf7547be75335dd51a
   tf2
 )
 
