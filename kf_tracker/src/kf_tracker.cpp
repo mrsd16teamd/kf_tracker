@@ -13,7 +13,7 @@ int stateDim = 4; // [x,y,v_x,v_y]//,w,h]
 int measDim = 2;  // [z_x,z_y,z_w,z_h]
 int ctrlDim = 0;
 
-int n_clusters = 2;
+int n_clusters = 6;
 std::vector<cv::KalmanFilter> KF_vec;
 cv::KalmanFilter KF_start(stateDim, measDim, ctrlDim, CV_32F);
 
