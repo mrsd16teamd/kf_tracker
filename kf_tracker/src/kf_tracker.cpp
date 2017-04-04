@@ -55,7 +55,6 @@ void KFT(const std_msgs::Float32MultiArray ccs) {
     clusterCenters.push_back(pt);
   }
 
-  //  cout<<"CLusterCenters Obtained"<<"\n";
   std::vector<geometry_msgs::Point> KFpredictions;
   i = 0;
   for (std::vector<cv::Mat>::iterator it = pred.begin(); it != pred.end();
@@ -86,7 +85,6 @@ void KFT(const std_msgs::Float32MultiArray ccs) {
           euclidean_distance(KFpredictions[filterN], copyOfClusterCenters[n]));
     }
     distMat.push_back(distVec);
-    cout << "filterN=" << filterN << "\n";
   }
 
   for (int clusterCount = 0; clusterCount < n_clusters; clusterCount++) {
@@ -400,8 +398,8 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &input) {
       }
     }
 
-    std::cout << "local coordinate" << std::endl;
-    std::cout << obstaclepoint << std::endl;
+    // std::cout << "local coordinate" << std::endl;
+    // std::cout << obstaclepoint << std::endl;
 
     tf::StampedTransform transform;
 
@@ -417,10 +415,10 @@ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr &input) {
     } catch (tf::TransformException &ex) {
     }
 
-    std::cout << "worldcoordiante" << std::endl;
-    std::cout << m.point.x << std::endl;
-    std::cout << m.point.y << std::endl;
-    std::cout << m.point.z << std::endl;
+    // std::cout << "worldcoordiante" << std::endl;
+    // std::cout << m.point.x << std::endl;
+    // std::cout << m.point.y << std::endl;
+    // std::cout << m.point.z << std::endl;
 
     visualization_msgs::MarkerArray clusterMarkers1;
     visualization_msgs::Marker m1;
@@ -495,13 +493,13 @@ int main(int argc, char **argv) {
   pub_cluster_vec.push_back(pub_cluster4);
   pub_cluster_vec.push_back(pub_cluster5);
 
-  ros::Subscriber sub = nh.subscribe("cloudnear", 1, cloud_cb);
+  ros::Subscriber sub = nh.subscribe("scan_cloud", 1, cloud_cb);
 
   tf::TransformListener lr(ros::Duration(10));
   tran = &lr;
 
   objID_pub = nh.advertise<std_msgs::Int32MultiArray>("obj_id", 1);
-  cc_pos = nh.advertise<std_msgs::Float32MultiArray>("ccs", 100); // clusterCenter1
+  cc_pos = nh.advertise<std_msgs::Float32MultiArray>("cluster_center", 100); // clusterCenter1
   markerPub = nh.advertise<visualization_msgs::MarkerArray>("viz_all", 1);
   markerPub1 = nh.advertise<visualization_msgs::MarkerArray>("viz1", 1);
 
