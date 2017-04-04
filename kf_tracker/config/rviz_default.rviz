@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Robot1
         - /Robot1/LaserScan1
+        - /MarkerArray1
         - /PointCloud21
       Splitter Ratio: 0.605096
     Tree Height: 490
@@ -28,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: PointCloud2
 Visualization Manager:
   Class: ""
   Displays:
@@ -151,7 +152,7 @@ Visualization Manager:
       Name: Robot
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /viz
+      Marker Topic: /viz1
       Name: MarkerArray
       Namespaces:
         "": true
@@ -244,5 +245,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1215
-  X: 55
-  Y: 14
+  X: 65
+  Y: 24

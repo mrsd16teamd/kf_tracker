@@ -39,6 +39,22 @@
 #include <utility>
 #include <pcl/registration/correspondence_estimation.h>
 
+//Constants for KF
+float dvx = 0.01f; // 1.0
+float dvy = 0.01f; // 1.0
+float dx = 1.0f;
+float dy = 1.0f;
+
+// Process Noise Covariance Matrix Q
+// [ Ex 0  0    0 0    0 ]
+// [ 0  Ey 0    0 0    0 ]
+// [ 0  0  Ev_x 0 0    0 ]
+// [ 0  0  0    1 Ev_y 0 ]
+//// [ 0  0  0    0 1    Ew ]
+//// [ 0  0  0    0 0    Eh ]
+float sigmaP = 0.01;
+float sigmaQ = 0.1;
+
 
 // calculate euclidean distance of two points
 double euclidean_distance(geometry_msgs::Point& p1, geometry_msgs::Point& p2)
